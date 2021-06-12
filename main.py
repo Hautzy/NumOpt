@@ -28,7 +28,7 @@ def newton(x_init, f, f_g, f_h, epsilon=1e-10, max_iterations=10):
     return x, max_iterations, step_sizes, pos
 
 
-def steepest_descent(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=10000):
+def steepest_descent(x_init, f, f_g, f_h, epsilon=1e-6, max_iterations=10000):
     x = x_init
     step_sizes = []
     pos = [np.copy(x_init)]
@@ -156,6 +156,71 @@ def himmel_hess(x):
     ])
 
 
+def qof(x, A, b):
+    return (1 / 2) * x.T @ A @ x - b @ x
+
+
+def qof_grad(x, A, b):
+    return A @ x - b
+
+
+def qof_hess(x, A, b):
+    return A
+
+
+def generate_pos_sem(n):
+    A = np.random.randint(0, 3, size=(n, n))
+    B = np.dot(A, A.T)
+    return B
+
+
+def get_matrix_path(i):
+    return f'examples/matrix{i}.csv'
+
+
+def generate_test_data(num, dim):
+    for i in range(num):
+        with open(get_matrix_path(i), 'w') as f:
+            np.savetxt(f, generate_pos_sem(dim), delimiter=',', fmt='%d')
+
+
+def load_example(i):
+    A = np.loadtxt(get_matrix_path(i), delimiter=',')
+    A = A.astype('float64')
+    return A, np.ones(A.shape[0])
+
+
+def qof_0(x):
+    A, b = load_example(0)
+    return qof(x, A, b)
+
+
+def qof_0_grad(x):
+    A, b = load_example(0)
+    return qof_grad(x, A, b)
+
+
+def qof_0_hess(x):
+    A, b = load_example(0)
+    return qof_hess(x, A, b)
+
+
+def check_convergence(pos, grad):
+    print('Check convergence\n------------')
+    error = 1e-3
+    for p in pos:
+        gv = grad(p)
+        if all([-error <= g <= error for g in gv]):
+            print([0, 0])
+        else:
+            print(gv)
+
+
+p = np.array([0.0, 0.0])
+x_min, it, step_sizes, pos = steepest_descent(p, qof_0, qof_0_grad, qof_0_hess)
+check_convergence(pos, qof_0_grad)
+
+''' steepest descent
 p = np.array([-1.5, 1.5])
 minimizer = np.array([1, 1])
 x_min, it, step_sizes, pos = steepest_descent(p, sphere, sphere_grad, sphere_hess)
@@ -175,8 +240,9 @@ p = np.array([4.0, 4.0])
 minimizer = np.array([3, 2])
 x_min, it, step_sizes, pos = steepest_descent(p, himmel, himmel_grad, himmel_hess)
 plot_step_size(himmel, step_sizes, pos, minimizer, 'steepest_descent', -5, 5, -5, 5)
-
 '''
+
+''' old try0
 p = np.array([-1.0, 0.5])
 minimizer = np.array([-0.679366, -0.679366])
 x_min, it, step_sizes, pos = newton(p, matyas, matyas_grad, matyas_hess)
