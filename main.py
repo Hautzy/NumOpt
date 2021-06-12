@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def newton(x_init, f, f_g, f_h, epsilon=1e-10, max_iterations=100):
+def newton(x_init, f, f_g, f_h, epsilon=1e-10, max_iterations=10):
     x = x_init
     step_sizes = []
     pos = [np.copy(x_init)]
@@ -23,7 +23,7 @@ def newton(x_init, f, f_g, f_h, epsilon=1e-10, max_iterations=100):
         x += step_size * direction
         step_sizes.append(step_size)
         pos.append(np.copy(x))
-        # print(f'{i + 1}) x={x}, direction={direction}, stepsize={step_size}')
+        print(f'{i + 1}) x={x}, direction={direction}, stepsize={step_size}')
 
     return x, max_iterations, step_sizes, pos
 
@@ -43,7 +43,7 @@ def steepest_descent(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=10000):
         x += step_size * direction
         step_sizes.append(step_size)
         pos.append(np.copy(x))
-        # print(f'{i + 1}) x={x}, direction={direction}, stepsize={step_size}')
+        print(f'{i + 1}) x={x}, direction={direction}, stepsize={step_size}')
 
     return x, max_iterations, step_sizes, pos
 
@@ -82,54 +82,109 @@ def plot_step_size(f, step_sizes, pos, minimizer, title, min_x=-2, max_x=2, min_
     plt.show()
 
 
-def f_0(x):
+def sphere(x):
     return (x[0] - 1) ** 4 + (x[1] - 1) ** 4
 
 
-def f_0_g(x):
+def sphere_grad(x):
     return np.array([
         4 * (x[0] - 1) ** 3,
         4 * (x[1] - 1) ** 3
     ])
 
 
-def f_0_h(x):
+def sphere_hess(x):
     return np.array([
         [12 * (x[0] - 1) ** 2, 0],
         [0, 12 * (x[1] - 1) ** 2]
     ])
 
-def f_1(x):
-    return x[0]**3+x[1]**2
+
+def matyas(x):
+    return 0.26 * (x[0] ** 4 + x[1] ** 4) - 0.48 * x[0] * x[1]
 
 
-def f_1_g(x):
+def matyas_grad(x):
     return np.array([
-        3*x[0]**2,
-        2*x[1]
+        1.04 * x[0] ** 3 - 0.48 * x[1],
+        1.04 * x[1] ** 3 - 0.48 * x[0]
     ])
 
 
-def f_1_h(x):
+def matyas_hess(x):
     return np.array([
-        [6*x[0], 0],
-        [0, 2]
+        [3.12 * x[0] ** 2, -0.48],
+        [-0.48, 3.12 * x[1] ** 2]
     ])
 
-'''
-p = np.array([1, 0.5])
-minimizer = np.array([0, 0])
-x_min, it, step_sizes, pos = steepest_descent(p, f_1, f_1_g, f_1_h)
-plot_step_size(f_1, step_sizes, pos, minimizer, f'newton - {p}')
+
+def booth(x):
+    return (x[0] + 2 * x[1] - 7) ** 4 + (2 * x[0] + x[1] - 5) ** 4
+
+
+def booth_grad(x):
+    return np.array([
+        8 * (2 * x[0] + x[1] - 5) ** 3 + 4 * (x[0] + 2 * x[1] - 7) ** 3,
+        4 * (2 * x[0] + x[1] - 5) ** 3 + 8 * (x[0] + 2 * x[1] - 7) ** 3
+    ])
+
+
+def booth_hess(x):
+    return np.array([
+        [12 * (4 * (2 * x[0] + x[1] - 5) ** 2 + (x[0] + 2 * x[1] - 7) ** 2),
+         24 * ((2 * x[0] + x[1] - 5) ** 2 + (x[0] + 2 * x[1] - 7) ** 2)],
+        [24 * ((2 * x[0] + x[1] - 5) ** 2 + (x[0] + 2 * x[1] - 7) ** 2),
+         12 * ((2 * x[0] + x[1] - 5) ** 2 + 4 * (x[0] + 2 * x[1] - 7) ** 2)]
+    ])
+
+
+def himmel(x):
+    return (x[0] ** 2 + x[1] - 11) ** 2 + (x[0] + x[1] ** 2 - 7) ** 2
+
+
+def himmel_grad(x):
+    return np.array([
+        (4 * x[0] ** 3 + 4 * x[0] * x[1] - 42 * x[0] + 2 * x[1] ** 2 - 14),
+        (4 * x[1] ** 3 + 4 * x[0] * x[1] - 26 * x[1] + 2 * x[0] ** 2 - 22)
+    ])
+
+
+def himmel_hess(x):
+    return np.array([
+        [4 * (x[0] ** 2 + x[1] - 11) + 8 * x[0] ** 2 + 2, 4 * x[0] + 4 * x[1]],
+        [4 * x[0] + 4 * x[1], 4 * (x[0] + x[1] ** 2 - 7) + 8 * x[1] ** 2 + 2]
+    ])
+
+
+p = np.array([-1.5, 1.5])
+minimizer = np.array([1, 1])
+x_min, it, step_sizes, pos = steepest_descent(p, sphere, sphere_grad, sphere_hess)
+plot_step_size(sphere, step_sizes, pos, minimizer, 'steepest_descent', -2, 4, -2, 4)
+
+p = np.array([-1.9, 1.5])
+minimizer = np.array([0.679366, 0.679366])
+x_min, it, step_sizes, pos = steepest_descent(p, matyas, matyas_grad, matyas_hess)
+plot_step_size(matyas, step_sizes, pos, minimizer, 'steepest_descent')
+
+p = np.array([-1.0, 0.0])
+minimizer = np.array([1, 3])
+x_min, it, step_sizes, pos = steepest_descent(p, booth, booth_grad, booth_hess)
+plot_step_size(booth, step_sizes, pos, minimizer, 'steepest_descent', -2, 5, -1, 6)
+
+p = np.array([4.0, 4.0])
+minimizer = np.array([3, 2])
+x_min, it, step_sizes, pos = steepest_descent(p, himmel, himmel_grad, himmel_hess)
+plot_step_size(himmel, step_sizes, pos, minimizer, 'steepest_descent', -5, 5, -5, 5)
 
 '''
+p = np.array([-1.0, 0.5])
+minimizer = np.array([-0.679366, -0.679366])
+x_min, it, step_sizes, pos = newton(p, matyas, matyas_grad, matyas_hess)
+plot_step_size(matyas, step_sizes, pos, minimizer, f'newton')
 
 p = np.array([-1.5, 1.5])
 minimizer = np.array([1, 1])
 x_min, it, step_sizes, pos = newton(p, f_0, f_0_g, f_0_h)
 plot_step_size(f_0, step_sizes, pos, minimizer, 'newton')
 
-p = np.array([-1.5, 1.5])
-minimizer = np.array([1, 1])
-x_min, it, step_sizes, pos = steepest_descent(p, f_0, f_0_g, f_0_h)
-plot_step_size(f_0, step_sizes, pos, minimizer, 'steepest_descent')
+'''
