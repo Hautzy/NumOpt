@@ -7,7 +7,7 @@ from scipy.optimize.linesearch import line_search_wolfe2
 def newton(x_init, f, f_g, f_h, epsilon=1e-6, max_iterations=100, k=10):
     x = x_init
     pos = [x_init.clone().detach()]
-    print(f"starting newton method from x0={x_init}")
+    print(f"starting newton method from x0={x_init.numpy().ravel()}")
     for i in range(max_iterations):
         gradient = f_g(x)
         transposed_gradient = gradient.T
@@ -28,14 +28,14 @@ def newton(x_init, f, f_g, f_h, epsilon=1e-6, max_iterations=100, k=10):
             print(f'{i}) loss: {loss}')
 
     print(f'{i}) loss: {loss}')
-    print(f'finished after {i} iterations at x={x}')
+    print(f'finished after {i} iterations at x={x.numpy().ravel()}')
     return pos
 
 
 def steepest_descent(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=1000, k=10):
     x = x_init
     pos = [x_init.clone().detach()]
-    print(f"starting steepest descent from x0={x_init}")
+    print(f"starting steepest descent from x0={x_init.numpy().ravel()}")
     for i in range(max_iterations):
         gradient = f_g(x)
         direction = - gradient
@@ -49,13 +49,13 @@ def steepest_descent(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=1000, k=1
         if i % k == 0:
             print(f'{i}) loss: {loss}')
     print(f'{i}) loss: {loss}')
-    print(f'finished after {i} iterations at x={x}')
+    print(f'finished after {i} iterations at x={x.numpy().ravel()}')
     return pos
 
 
 def quasi_newton(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=100, k=10):
     x = x_init
-    print(f"starting quasi newton from x0={x_init}")
+    print(f"starting quasi newton from x0={x_init.numpy().ravel()}")
     pos = [x_init.clone().detach()]
     grad = f_g(x)
     I = torch.eye(len(x_init)).type(torch.DoubleTensor)
@@ -88,14 +88,14 @@ def quasi_newton(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=100, k=10):
         i += 1
 
     print(f'{i}) loss: {loss}')
-    print(f'finished after {i} iterations at x={x}')
+    print(f'finished after {i} iterations at x={x.numpy().ravel()}')
     return pos
 
 
 def linear_conjugate_gradient(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=1000, k=10):
     i = 0
     x = x_init
-    print(f"starting linear conjugate gradient from x0={x_init}")
+    print(f"starting linear conjugate gradient from x0={x_init.numpy().ravel()}")
     r = f_g(x)
     p = -r
     loss = torch.norm(f_g(x))
@@ -125,7 +125,7 @@ def linear_conjugate_gradient(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=
         i += 1
 
     print(f'{i}) loss: {loss}')
-    print(f'finished after {i} iterations at x={x}')
+    print(f'finished after {i} iterations at x={x.numpy().ravel()}')
     return pos
 
 
@@ -167,7 +167,7 @@ def polak_ribiere_powell_step(alpha, x, direction, f_g, gradient, delta_k, grad_
 
 def non_linear_conjugate_gradient(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=1000, k=10):
     x = x_init
-    print(f"starting non-linear conjugate gradient method from x0={x_init}")
+    print(f"starting non-linear conjugate gradient method from x0={x_init.numpy().ravel()}")
     gradient = f_g(x)
     direction = -gradient
     i = 0
@@ -197,7 +197,7 @@ def non_linear_conjugate_gradient(x_init, f, f_g, f_h, epsilon=1e-3, max_iterati
         i += 1
 
     print(f'{i}) loss: {loss}')
-    print(f'finished after {i} iterations at x={x}')
+    print(f'finished after {i} iterations at x={x.numpy().ravel()}')
     return pos
 
 
