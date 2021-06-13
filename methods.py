@@ -2,10 +2,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def newton(x_init, f, f_g, f_h, epsilon=1e-10, max_iterations=100):
+def newton(x_init, f, f_g, f_h, epsilon=1e-6, max_iterations=100, k=10):
     x = x_init
     step_sizes = []
     pos = [np.copy(x_init)]
+    gradient = 0
     print(f"starting newton method from x0={x_init}")
     for i in range(max_iterations):
         gradient = f_g(x)
@@ -17,26 +18,7 @@ def newton(x_init, f, f_g, f_h, epsilon=1e-10, max_iterations=100):
         decrement = transposed_gradient @ inverse_hessian @ gradient
 
         if decrement / 2 <= epsilon:
-            return x, i + 1, step_sizes, pos
-
-        step_size = iterate_step_length(x, f, direction, gradient)
-        x += step_size * direction
-        step_sizes.append(step_size)
-        pos.append(np.copy(x))
-        print(f'{i + 1}) x={x}')
-
-    return x, max_iterations, step_sizes, pos
-
-
-def steepest_descent(x_init, f, f_g, f_h, epsilon=1e-6, max_iterations=1000):
-    x = x_init
-    step_sizes = []
-    pos = [np.copy(x_init)]
-    print(f"starting steepest descent from x0={x_init}")
-    for i in range(max_iterations):
-        gradient = f_g(x)
-        direction = - gradient
-        if np.linalg.norm(gradient) <= epsilon:
+            print(f'{i}) loss: {np.linalg.norm(gradient)}')
             print(f'finished after {i} iterations at x={x}')
             return x, i + 1, step_sizes, pos
 
@@ -44,8 +26,35 @@ def steepest_descent(x_init, f, f_g, f_h, epsilon=1e-6, max_iterations=1000):
         x += step_size * direction
         step_sizes.append(step_size)
         pos.append(np.copy(x))
-        # print(f'{i + 1}) x={x}')
+        if i % k == 0:
+            print(f'{i}) loss: {np.linalg.norm(gradient)}')
 
+    print(f'{i}) loss: {np.linalg.norm(gradient)}')
+    print(f'finished after {i} iterations at x={x}')
+    return x, max_iterations, step_sizes, pos
+
+
+def steepest_descent(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=1000, k=10):
+    x = x_init
+    step_sizes = []
+    pos = [np.copy(x_init)]
+    gradient = 0
+    print(f"starting steepest descent from x0={x_init}")
+    for i in range(max_iterations):
+        gradient = f_g(x)
+        direction = - gradient
+        if np.linalg.norm(gradient) <= epsilon:
+            print(f'{i}) loss: {np.linalg.norm(gradient)}')
+            print(f'finished after {i} iterations at x={x}')
+            return x, i, step_sizes, pos
+
+        step_size = iterate_step_length(x, f, direction, gradient)
+        x += step_size * direction
+        step_sizes.append(step_size)
+        pos.append(np.copy(x))
+        if i % k == 0:
+            print(f'{i}) loss: {np.linalg.norm(gradient)}')
+    print(f'{i}) loss: {np.linalg.norm(gradient)}')
     print(f'finished after {i} iterations at x={x}')
     return x, max_iterations, step_sizes, pos
 
