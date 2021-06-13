@@ -59,6 +59,48 @@ def steepest_descent(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=1000, k=1
     return x, max_iterations, step_sizes, pos
 
 
+def quasi_newton(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=1000, k=10):
+    x = x_init
+    step_sizes = []
+    pos = [np.copy(x_init)]
+    grad = f_g(x)
+    I = np.identity(len(x))
+    H = np.copy(I)
+    loss = np.linalg.norm(grad)
+    i = 0
+
+    while loss > epsilon:
+        if i >= max_iterations:
+            break
+        p = -1 * H @ grad
+        alpha = iterate_step_length(x, f, p, grad)
+        x_next = x + alpha * p
+        grad_next = f_g(x_next)
+
+        s = x_next - x  # 6.5
+        y = grad_next - grad  # 6.5
+        r = 1 / (y.T @ s)  # 6.14
+        H_next = (I - r * s @ y.T) @ H @ (I - r * y @ s.T) + r * s @ s.T  # 6.17
+
+        loss = np.linalg.norm(grad_next)
+
+        if i % k == 0:
+            print(f'{i}) loss: {loss}')
+
+        x = x_next
+        grad = grad_next
+        H = H_next
+
+        step_sizes.append(alpha)
+        pos.append(np.copy(x))
+
+        i += 1
+
+    print(f'{i}) loss: {loss}')
+    print(f'finished after {i} iterations at x={x}')
+    return x, max_iterations, step_sizes, pos
+
+
 def iterate_step_length(x, f, direction, gradient, rho=0.49, beta=0.99):
     step_size = 1
     while f(x + step_size * direction) > f(x) + rho * step_size * np.inner(gradient, direction):

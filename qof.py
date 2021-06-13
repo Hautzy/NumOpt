@@ -2,7 +2,7 @@ import numpy as np
 
 
 def qof(x, A, b):
-    return (1 / 2) * x.T @ A @ x - b @ x
+    return (1 / 2) * x.T @ A @ x - b.T @ x
 
 
 def qof_grad(x, A, b):

@@ -19,6 +19,7 @@ def apply_method(method, method_name, max_iter=100, k=10):
 # qof examples
 #apply_method(m.steepest_descent, 'steepest descent', 1000, 100)
 #apply_method(m.newton, 'newton', 100, 1)
+#apply_method(m.quasi_newton, 'quasi newton', 1000, 10)
 
 # steepest descent
 def try_steepest_descent():
@@ -80,11 +81,35 @@ def try_newton():
     x_min, it, step_sizes, pos = m.newton(np.array([1.2, 1.2]), p.rosenbrock, p.rosenbrock_grad, p.rosenbrock_hess)
     m.plot_step_size(p.rosenbrock, step_sizes, pos, minimizer, 'newton', -2, 2, -1, 3)
 
-try_steepest_descent()
-#try_newton()
+# quasi-newton method
+def try_quasi_newton_method():
+    minimizer = np.array([1, 1])
+    x_min, it, step_sizes, pos = m.quasi_newton(np.array([-1.5, 1.5]), p.sphere, p.sphere_grad, p.sphere_hess)
+    m.plot_step_size(p.sphere, step_sizes, pos, minimizer, 'quasi newton', -2, 4, -2, 4)
 
-'''
-minimizer = np.array([1, 1])
-x_min, it, step_sizes, pos = m.steepest_descent(np.array([-1.5, 1.5]), p.sphere, p.sphere_grad, p.sphere_hess)
-m.plot_step_size(p.sphere, step_sizes, pos, minimizer, 'steepest_descent', -2, 4, -2, 4)
-'''
+    minimizer = np.array([[0.679366, -0.679366], [0.679366, -0.679366]])
+    x_min, it, step_sizes, pos = m.quasi_newton(np.array([-1.9, 1.5]), p.matyas, p.matyas_grad, p.matyas_hess)
+    m.plot_step_size(p.matyas, step_sizes, pos, minimizer, 'quasi newton')
+    x_min, it, step_sizes, pos = m.quasi_newton(np.array([1.5, 1.5]), p.matyas, p.matyas_grad, p.matyas_hess)
+    m.plot_step_size(p.matyas, step_sizes, pos, minimizer, 'quasi newton')
+
+    minimizer = np.array([1, 3])
+    x_min, it, step_sizes, pos = m.quasi_newton(np.array([-1.0, 0.0]), p.booth, p.booth_grad, p.booth_hess)
+    m.plot_step_size(p.booth, step_sizes, pos, minimizer, 'quasi newton', -2, 5, -1, 6)
+
+    minimizer = np.array([[3, -2.805118, -3.779310, 3.584428], [2, 3.131312, -3.283186, -1.848126]])
+    x_min, it, step_sizes, pos = m.quasi_newton(np.array([4.0, 4.0]), p.himmel, p.himmel_grad, p.himmel_hess)
+    m.plot_step_size(p.himmel, step_sizes, pos, minimizer, 'quasi newton', -5, 5, -5, 5)
+    x_min, it, step_sizes, pos = m.quasi_newton(np.array([-3.0, -1.0]), p.himmel, p.himmel_grad, p.himmel_hess)
+    m.plot_step_size(p.himmel, step_sizes, pos, minimizer, 'quasi newton', -5, 5, -5, 5)
+    x_min, it, step_sizes, pos = m.quasi_newton(np.array([1.0, -1.0]), p.himmel, p.himmel_grad, p.himmel_hess)
+    m.plot_step_size(p.himmel, step_sizes, pos, minimizer, 'quasi newton', -5, 5, -5, 5)
+    x_min, it, step_sizes, pos = m.quasi_newton(np.array([-1.0, 4.0]), p.himmel, p.himmel_grad, p.himmel_hess)
+    m.plot_step_size(p.himmel, step_sizes, pos, minimizer, 'quasi newton', -5, 5, -5, 5)
+
+    minimizer = np.array([1, 1])
+    x_min, it, step_sizes, pos = m.quasi_newton(np.array([1.2, 1.2]), p.rosenbrock, p.rosenbrock_grad, p.rosenbrock_hess, max_iterations=10000)
+    m.plot_step_size(p.rosenbrock, step_sizes, pos, minimizer, 'quasi newton', -2, 2, -1, 3)
+
+
+try_quasi_newton_method()
