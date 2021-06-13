@@ -1,35 +1,35 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import torch
 
 
 def newton(x_init, f, f_g, f_h, epsilon=1e-6, max_iterations=100, k=10):
     x = x_init
     step_sizes = []
-    pos = [np.copy(x_init)]
-    gradient = 0
+    pos = [x_init.clone().detach()]
     print(f"starting newton method from x0={x_init}")
     for i in range(max_iterations):
         gradient = f_g(x)
-        transposed_gradient = np.transpose(gradient)
+        transposed_gradient = gradient.T
         hessian = f_h(x)
-        inverse_hessian = np.linalg.inv(hessian)
+        inverse_hessian = hessian.inverse()
 
         direction = -inverse_hessian @ gradient
         decrement = transposed_gradient @ inverse_hessian @ gradient
 
+        loss = torch.norm(gradient)
         if decrement / 2 <= epsilon:
-            print(f'{i}) loss: {np.linalg.norm(gradient)}')
+            print(f'{i}) loss: {loss}')
             print(f'finished after {i} iterations at x={x}')
-            return x, i + 1, step_sizes, pos
+            return x, i, step_sizes, pos
 
         step_size = iterate_step_length(x, f, direction, gradient)
         x += step_size * direction
-        step_sizes.append(step_size)
-        pos.append(np.copy(x))
+        pos.append(x.clone().detach())
         if i % k == 0:
-            print(f'{i}) loss: {np.linalg.norm(gradient)}')
+            print(f'{i}) loss: {loss}')
 
-    print(f'{i}) loss: {np.linalg.norm(gradient)}')
+    print(f'{i}) loss: {loss}')
     print(f'finished after {i} iterations at x={x}')
     return x, max_iterations, step_sizes, pos
 
@@ -37,24 +37,24 @@ def newton(x_init, f, f_g, f_h, epsilon=1e-6, max_iterations=100, k=10):
 def steepest_descent(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=1000, k=10):
     x = x_init
     step_sizes = []
-    pos = [np.copy(x_init)]
-    gradient = 0
+    pos = [x_init.clone().detach()]
     print(f"starting steepest descent from x0={x_init}")
     for i in range(max_iterations):
         gradient = f_g(x)
         direction = - gradient
-        if np.linalg.norm(gradient) <= epsilon:
-            print(f'{i}) loss: {np.linalg.norm(gradient)}')
+        loss = torch.norm(gradient)
+        if loss <= epsilon:
+            print(f'{i}) loss: {loss}')
             print(f'finished after {i} iterations at x={x}')
             return x, i, step_sizes, pos
 
         step_size = iterate_step_length(x, f, direction, gradient)
         x += step_size * direction
         step_sizes.append(step_size)
-        pos.append(np.copy(x))
+        pos.append(x.clone().detach())
         if i % k == 0:
-            print(f'{i}) loss: {np.linalg.norm(gradient)}')
-    print(f'{i}) loss: {np.linalg.norm(gradient)}')
+            print(f'{i}) loss: {loss}')
+    print(f'{i}) loss: {loss}')
     print(f'finished after {i} iterations at x={x}')
     return x, max_iterations, step_sizes, pos
 
@@ -62,11 +62,11 @@ def steepest_descent(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=1000, k=1
 def quasi_newton(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=1000, k=10):
     x = x_init
     step_sizes = []
-    pos = [np.copy(x_init)]
+    pos = [x_init.clone().detach()]
     grad = f_g(x)
-    I = np.identity(len(x))
-    H = np.copy(I)
-    loss = np.linalg.norm(grad)
+    I = torch.eye(len(x_init)).type(torch.DoubleTensor)
+    H = torch.clone(I)
+    loss = torch.norm(grad)
     i = 0
 
     while loss > epsilon:
@@ -82,16 +82,13 @@ def quasi_newton(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=1000, k=10):
         r = 1 / (y.T @ s)  # 6.14
         H_next = (I - r * s @ y.T) @ H @ (I - r * y @ s.T) + r * s @ s.T  # 6.17
 
-        loss = np.linalg.norm(grad_next)
-
+        loss = torch.norm(grad_next)
         if i % k == 0:
             print(f'{i}) loss: {loss}')
 
         x = x_next
         grad = grad_next
         H = H_next
-
-        step_sizes.append(alpha)
         pos.append(np.copy(x))
 
         i += 1
@@ -103,12 +100,11 @@ def quasi_newton(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=1000, k=10):
 
 def conjugated_gradiant(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=1000, k=10):
     i = 0
-
     x = x_init
     r = f_g(x)
     p = -r
-    loss = np.linalg.norm(r)
-    pos = []
+    loss = torch.norm(f_g(x))
+    pos = [x_init.clone().detach()]
 
     while loss > epsilon:
         if i >= max_iterations:
@@ -121,15 +117,14 @@ def conjugated_gradiant(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=1000, 
         beta_next = (r_next.T @ r_next) / (r.T @ r)
         p_next = -r_next + beta_next * p
 
-        loss = np.linalg.norm(x_next)
-
+        loss = torch.norm(f_g(x_next))
         if i % k == 0:
             print(f'{i}) loss: {loss}')
 
         x = x_next
         r = r_next
         p = p_next
-        pos.append(np.copy(x))
+        pos.append(x.clone().detach())
 
         i += 1
     print(f'{i}) loss: {loss}')
@@ -139,7 +134,7 @@ def conjugated_gradiant(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=1000, 
 
 def iterate_step_length(x, f, direction, gradient, rho=0.49, beta=0.99):
     step_size = 1
-    while f(x + step_size * direction) > f(x) + rho * step_size * np.inner(gradient, direction):
+    while f(x + step_size * direction) > f(x) + rho * step_size * gradient.T @ direction:
         step_size *= beta
     return step_size
 
@@ -176,10 +171,11 @@ def plot_step_size(f, step_sizes, pos, minimizers, title, min_x=-2, max_x=2, min
 
 def check_convergence(pos, grad, method, k=10):
     print('Check convergence')
-    pos = np.array([pos[i] for i in range(len(pos)) if i % k == 0])
+    t = len(pos)
+    pos = [pos[i] for i in range(len(pos)) if i % k == 0]
     data = np.zeros(shape=(len(pos), len(pos[0])))
     for i in range(len(pos)):
-        data[i] = grad(pos[i])
+        data[i] = grad(pos[i]).numpy().ravel()
     data = data.T
 
     x = range(len(pos))

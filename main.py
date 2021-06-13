@@ -4,22 +4,34 @@ import methods as m
 import problems as p
 import matplotlib.pyplot as plt
 
+import torch
+
 def apply_method(method, method_name, max_iter=100, k=10):
-    for i in range(5):
-        A, b = q.load_example(i)
+    for i in range(1):
+        dim = 10
+        x_solution = torch.randint(low=1, high=9, size=(dim, 1)).type(torch.DoubleTensor)
+
+        A = torch.randint(low=1, high=9, size=(dim, dim)).type(torch.DoubleTensor)
+        A = A @ A.T
+        b = A @ x_solution
+
+        initial_point = torch.randint(low=1, high=9, size=(dim, 1)).type(torch.DoubleTensor)
+
         print(f'Trying {method_name}')
-        x_min, it, step_sizes, pos = method(np.zeros(b.shape),
+        x_min, it, step_sizes, pos = method(initial_point,
                                             lambda x: q.qof(x, A, b),
                                             lambda x: q.qof_grad(x, A, b),
                                             lambda x: q.qof_hess(x, A, b),
                                             max_iterations=max_iter,
+                                            epsilon=0.1,
                                             k=k)
         m.check_convergence(pos, lambda x: q.qof_grad(x, A, b), method, k)
 
 # qof examples
 #apply_method(m.steepest_descent, 'steepest descent', 1000, 100)
 #apply_method(m.newton, 'newton', 100, 1)
-apply_method(m.quasi_newton, 'quasi newton', 1000, 10)
+#apply_method(m.quasi_newton, 'quasi newton', 1000, 1)
+apply_method(m.conjugated_gradiant, 'quasi newton', 1000, 1)
 
 # steepest descent
 def try_steepest_descent():
