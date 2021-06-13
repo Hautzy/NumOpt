@@ -31,13 +31,13 @@ def apply_method(method, method_name, max_iter=100, k=10):
         m.check_convergence(pos, lambda x: p.qof_grad(x, A, b), method_name, k)
 
 
-'''
+
 # qof examples
-apply_method(m.steepest_descent, 'steepest descent', 100, 1)
-apply_method(m.newton, 'newton', 100, 1)
-apply_method(m.quasi_newton, 'quasi newton', 100, 1)
-apply_method(m.conjugated_gradiant, 'quasi newton', 100, 1)
-'''
+#apply_method(m.steepest_descent, 'steepest descent', 100, 1)
+#apply_method(m.newton, 'newton', 100, 1)
+#apply_method(m.quasi_newton, 'quasi newton', 100, 1)
+#apply_method(m.linear_conjugated_gradient, 'linear conjugated gradient', 100, 1)
+
 
 
 # steepest descent
@@ -137,8 +137,4 @@ def try_quasi_newton_method():
 
 #try_steepest_descent()
 #try_newton()
-#try_quasi_newton_method()
-
-minimizer = np.array([1, 1])
-pos = m.conjugated_gradiant(torch.DoubleTensor([-1.0, -1.0]), p.sphere, p.sphere_grad, p.sphere_hess)
-m.plot_step_size(p.sphere, pos, minimizer, 'conjugated gradiant', -2, 4, -2, 4)
+try_quasi_newton_method()

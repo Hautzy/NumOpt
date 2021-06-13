@@ -90,19 +90,20 @@ def quasi_newton(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=100, k=10):
     return pos
 
 
-def conjugated_gradiant(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=1000, k=10):
+def linear_conjugated_gradient(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=1000, k=10):
     i = 0
     x = x_init
     r = f_g(x)
     p = -r
     loss = torch.norm(f_g(x))
     pos = [x_init.clone().detach()]
+    A = f_h(x)
 
     while loss > epsilon:
         if i >= max_iterations:
             break
-        A = f_h(x)
-        alpha = (r.T @ r) / (p.T @ A @ p)
+
+        alpha = (r.T @ r) / (p.T @ (A @ p))
         x_next = x + alpha * p
 
         r_next = r + alpha * A @ p
@@ -119,6 +120,7 @@ def conjugated_gradiant(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=1000, 
         pos.append(x.clone().detach())
 
         i += 1
+
     print(f'{i}) loss: {loss}')
     print(f'finished after {i} iterations at x={x}')
     return pos
