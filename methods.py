@@ -133,6 +133,18 @@ def iterate_step_length(x, f, direction, gradient, rho=0.49, beta=0.99):
     return step_size
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 def plot_step_size(f, pos, minimizers, title, min_x=-2, max_x=2, min_y=-2, max_y=2, num=250):
     x = np.linspace(min_x, max_x, num)
     y = np.linspace(min_y, max_y, num)

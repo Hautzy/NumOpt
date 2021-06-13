@@ -9,7 +9,7 @@ MIN = 1
 MAX = 9
 
 
-def apply_method(method, method_name, max_iter=100, k=10):
+def apply_all_methods():
     for i in range(5):
         dim = 10
         x_solution = torch.randint(low=MIN, high=MAX, size=(dim, 1)).type(torch.DoubleTensor)
@@ -18,26 +18,25 @@ def apply_method(method, method_name, max_iter=100, k=10):
         A = A @ A.T
         b = A @ x_solution
 
-        initial_point = torch.randint(low=MIN, high=MAX, size=(dim, 1)).type(torch.DoubleTensor)
-
-        print(f'Trying {method_name}')
-        pos = method(initial_point,
-                     lambda x: p.qof(x, A, b),
-                     lambda x: p.qof_grad(x, A, b),
-                     lambda x: p.qof_hess(x, A, b),
-                     max_iterations=max_iter,
-                     epsilon=0.1,
-                     k=k)
-        m.check_convergence(pos, lambda x: p.qof_grad(x, A, b), method_name, k)
+        apply_method(m.steepest_descent, dim, A, b)
+        apply_method(m.newton, dim, A, b)
+        apply_method(m.quasi_newton, dim, A, b)
+        apply_method(m.linear_conjugated_gradient, dim, A, b)
 
 
+def apply_method(method, dim, A, b, max_iter=100, k=1):
+    initial_point = torch.randint(low=MIN, high=MAX, size=(dim, 1)).type(torch.DoubleTensor)
+    print(f'Trying {method.__name__}')
+    pos = method(initial_point,
+                 lambda x: p.qof(x, A, b),
+                 lambda x: p.qof_grad(x, A, b),
+                 lambda x: p.qof_hess(x, A, b),
+                 max_iterations=max_iter,
+                 epsilon=0.1,
+                 k=k)
+    m.check_convergence(pos, lambda x: p.qof_grad(x, A, b), method.__name__, k)
 
-# qof examples
-#apply_method(m.steepest_descent, 'steepest descent', 100, 1)
-#apply_method(m.newton, 'newton', 100, 1)
-#apply_method(m.quasi_newton, 'quasi newton', 100, 1)
-#apply_method(m.linear_conjugated_gradient, 'linear conjugated gradient', 100, 1)
-
+#apply_all_methods()
 
 
 # steepest descent
@@ -68,7 +67,7 @@ def try_steepest_descent():
 
     minimizer = np.array([1, 1])
     pos = m.steepest_descent(torch.DoubleTensor([1.2, 1.2]), p.rosenbrock, p.rosenbrock_grad,
-                                                    p.rosenbrock_hess, max_iterations=10000)
+                             p.rosenbrock_hess, max_iterations=10000)
     m.plot_step_size(p.rosenbrock, pos, minimizer, 'steepest_descent', -2, 2, -1, 3)
 
 
@@ -131,10 +130,9 @@ def try_quasi_newton_method():
 
     minimizer = np.array([1, 1])
     pos = m.quasi_newton(torch.DoubleTensor([1.2, 1.2]), p.rosenbrock, p.rosenbrock_grad,
-                                                p.rosenbrock_hess, max_iterations=1000)
+                         p.rosenbrock_hess, max_iterations=1000)
     m.plot_step_size(p.rosenbrock, pos, minimizer, 'quasi newton', -2, 2, -1, 3)
 
-
-#try_steepest_descent()
-#try_newton()
-try_quasi_newton_method()
+# try_steepest_descent()
+# try_newton()
+# try_quasi_newton_method()
