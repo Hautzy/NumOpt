@@ -101,6 +101,42 @@ def quasi_newton(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=1000, k=10):
     return x, max_iterations, step_sizes, pos
 
 
+def conjugated_gradiant(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=1000, k=10):
+    i = 0
+
+    x = x_init
+    r = f_g(x)
+    p = -r
+    loss = np.linalg.norm(r)
+    pos = []
+
+    while loss > epsilon:
+        if i >= max_iterations:
+            break
+        A = f_h(x)
+        alpha = (r.T @ r) / (p.T @ A @ p)
+        x_next = x + alpha * p
+
+        r_next = r + alpha * A @ p
+        beta_next = (r_next.T @ r_next) / (r.T @ r)
+        p_next = -r_next + beta_next * p
+
+        loss = np.linalg.norm(x_next)
+
+        if i % k == 0:
+            print(f'{i}) loss: {loss}')
+
+        x = x_next
+        r = r_next
+        p = p_next
+        pos.append(np.copy(x))
+
+        i += 1
+    print(f'{i}) loss: {loss}')
+    print(f'finished after {i} iterations at x={x}')
+    return x, max_iterations, None, pos
+
+
 def iterate_step_length(x, f, direction, gradient, rho=0.49, beta=0.99):
     step_size = 1
     while f(x + step_size * direction) > f(x) + rho * step_size * np.inner(gradient, direction):

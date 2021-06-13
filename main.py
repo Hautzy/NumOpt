@@ -19,7 +19,7 @@ def apply_method(method, method_name, max_iter=100, k=10):
 # qof examples
 #apply_method(m.steepest_descent, 'steepest descent', 1000, 100)
 #apply_method(m.newton, 'newton', 100, 1)
-#apply_method(m.quasi_newton, 'quasi newton', 1000, 10)
+apply_method(m.quasi_newton, 'quasi newton', 1000, 10)
 
 # steepest descent
 def try_steepest_descent():
@@ -112,4 +112,4 @@ def try_quasi_newton_method():
     m.plot_step_size(p.rosenbrock, step_sizes, pos, minimizer, 'quasi newton', -2, 2, -1, 3)
 
 
-try_quasi_newton_method()
+#try_quasi_newton_method()
