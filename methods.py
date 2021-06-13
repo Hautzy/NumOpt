@@ -5,7 +5,6 @@ import torch
 
 def newton(x_init, f, f_g, f_h, epsilon=1e-6, max_iterations=100, k=10):
     x = x_init
-    step_sizes = []
     pos = [x_init.clone().detach()]
     print(f"starting newton method from x0={x_init}")
     for i in range(max_iterations):
@@ -19,9 +18,7 @@ def newton(x_init, f, f_g, f_h, epsilon=1e-6, max_iterations=100, k=10):
 
         loss = torch.norm(gradient)
         if decrement / 2 <= epsilon:
-            print(f'{i}) loss: {loss}')
-            print(f'finished after {i} iterations at x={x}')
-            return x, i, step_sizes, pos
+            break
 
         step_size = iterate_step_length(x, f, direction, gradient)
         x += step_size * direction
@@ -31,12 +28,11 @@ def newton(x_init, f, f_g, f_h, epsilon=1e-6, max_iterations=100, k=10):
 
     print(f'{i}) loss: {loss}')
     print(f'finished after {i} iterations at x={x}')
-    return x, max_iterations, step_sizes, pos
+    return pos
 
 
 def steepest_descent(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=1000, k=10):
     x = x_init
-    step_sizes = []
     pos = [x_init.clone().detach()]
     print(f"starting steepest descent from x0={x_init}")
     for i in range(max_iterations):
@@ -44,24 +40,20 @@ def steepest_descent(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=1000, k=1
         direction = - gradient
         loss = torch.norm(gradient)
         if loss <= epsilon:
-            print(f'{i}) loss: {loss}')
-            print(f'finished after {i} iterations at x={x}')
-            return x, i, step_sizes, pos
+            break
 
         step_size = iterate_step_length(x, f, direction, gradient)
         x += step_size * direction
-        step_sizes.append(step_size)
         pos.append(x.clone().detach())
         if i % k == 0:
             print(f'{i}) loss: {loss}')
     print(f'{i}) loss: {loss}')
     print(f'finished after {i} iterations at x={x}')
-    return x, max_iterations, step_sizes, pos
+    return pos
 
 
-def quasi_newton(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=1000, k=10):
+def quasi_newton(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=100, k=10):
     x = x_init
-    step_sizes = []
     pos = [x_init.clone().detach()]
     grad = f_g(x)
     I = torch.eye(len(x_init)).type(torch.DoubleTensor)
@@ -89,13 +81,13 @@ def quasi_newton(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=1000, k=10):
         x = x_next
         grad = grad_next
         H = H_next
-        pos.append(np.copy(x))
+        pos.append(x.clone().detach())
 
         i += 1
 
     print(f'{i}) loss: {loss}')
     print(f'finished after {i} iterations at x={x}')
-    return x, max_iterations, step_sizes, pos
+    return pos
 
 
 def conjugated_gradiant(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=1000, k=10):
@@ -129,7 +121,7 @@ def conjugated_gradiant(x_init, f, f_g, f_h, epsilon=1e-3, max_iterations=1000, 
         i += 1
     print(f'{i}) loss: {loss}')
     print(f'finished after {i} iterations at x={x}')
-    return x, max_iterations, None, pos
+    return pos
 
 
 def iterate_step_length(x, f, direction, gradient, rho=0.49, beta=0.99):
@@ -139,20 +131,14 @@ def iterate_step_length(x, f, direction, gradient, rho=0.49, beta=0.99):
     return step_size
 
 
-def plot_step_size(f, step_sizes, pos, minimizers, title, min_x=-2, max_x=2, min_y=-2, max_y=2, num=250):
-    '''plt.figure(figsize=(16, 9))
-    plt.plot(range(len(step_sizes)), step_sizes)
-    plt.title(f'{title} - step size')
-    plt.xlabel('iterations')
-    plt.ylabel('step-size')
-    plt.show()'''
-
+def plot_step_size(f, pos, minimizers, title, min_x=-2, max_x=2, min_y=-2, max_y=2, num=250):
     x = np.linspace(min_x, max_x, num)
     y = np.linspace(min_y, max_y, num)
     X, Y = np.meshgrid(x, y)
-    Z = f(np.array([X, Y]))
+    t = torch.from_numpy(np.array([X, Y]))
+    Z = f(t)
     plt.figure(figsize=(16, 9))
-    plt.contour(X, Y, Z, 50, cmap='jet')
+    plt.contour(X, Y, Z.numpy(), 50, cmap='jet')
 
     x1 = [x[0] for x in pos]
     x2 = [x[1] for x in pos]
@@ -161,7 +147,7 @@ def plot_step_size(f, step_sizes, pos, minimizers, title, min_x=-2, max_x=2, min
     plt.scatter(minimizers[0], minimizers[1], color='r', marker='o', label='minimizer')
     plt.scatter(pos[0][0], pos[0][1], color='b', marker='*', label='start-point')
     plt.scatter(pos[-1][0], pos[-1][1], color='g', marker='*', label='my-solution')
-    plt.title(f'{title} / my-solution:{pos[-1]}')
+    plt.title(f'{title} / my-solution:{pos[-1].numpy()}')
     plt.legend()
     plt.show()
 
